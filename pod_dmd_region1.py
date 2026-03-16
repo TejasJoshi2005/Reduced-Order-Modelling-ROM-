@@ -26,7 +26,7 @@ print("Loading sample snapshot to get coordinates...")
 sample_path = os.path.join(data_folder, files[0])
 sample_data = np.loadtxt(sample_path)
 
-n_points, n_vars = sample_data.shape  # e.g., (1794816, 6)
+n_points, n_vars = sample_data.shape  
 print(f"Data shape: {n_points} points x {n_vars} variables")
 
 
@@ -35,7 +35,7 @@ x_coords = sample_data[:, 0]
 y_coords = sample_data[:, 1]
 print("Coordinates loaded.")
 
-# Define a plotting grid (what we interpolate ONTO) 
+# Define a plotting grid
 Nx_plot = 300  # Resolution for plotting in x
 Ny_plot = 200  # Resolution for plotting in y
 xi = np.linspace(x_coords.min(), x_coords.max(), Nx_plot)
@@ -58,12 +58,12 @@ for i, f in enumerate(files):
     if (i+1) % 50 == 0:
         print(f"  Loading snapshot {i+1}/{n_snapshots}")
     snapshot_path = os.path.join(data_folder, f)
-    # Load the full (N_points, 6) data
+  
     data = np.loadtxt(snapshot_path)
-    # Store ONLY the variable we want (e.g., u-velocity)
+    
     X[:, i] = data[:, VAR_INDEX]
 
-print(f"Data matrix X shape: {X.shape}") # Should be (1794816, n_snapshots)
+print(f"Data matrix X shape: {X.shape}") 
 
 
 def mode_to_2d(vec):
@@ -76,7 +76,7 @@ def mode_to_2d(vec):
     grid_mode = griddata((x_coords, y_coords), vec, (grid_x, grid_y), method='cubic')
     return np.nan_to_num(grid_mode) # Handle NaNs from interpolation
 
-# Visualization of first few snapshots (Now uses griddata) 
+# Visualization of first few snapshots 
 num_visualize = 5
 print(f"Visualizing first {num_visualize} snapshots...")
 for i in range(num_visualize):
@@ -90,15 +90,15 @@ for i in range(num_visualize):
     plt.contourf(grid_x, grid_y, snapshot_2d, levels=100, cmap='jet')
     plt.colorbar(label=VAR_NAME)
     plt.title(f"Flow Snapshot {i+1}", fontsize=12)
-    plt.xlabel("X Coordinate") # <-- Fixed label
-    plt.ylabel("Y Coordinate") # <-- Fixed label
+    plt.xlabel("X Coordinate") 
+    plt.ylabel("Y Coordinate")
     plt.axis('equal')
     plt.tight_layout()
     plt.savefig(os.path.join(output_folder, f"flow_snapshot_{i+1}.png"), dpi = 150)
     plt.close()
 print("Initial snapshot visualization complete.")
 
-# --- Start POD/DMD ---
+# Start POD
 print("Subtracting mean...")
 X_mean = np.mean(X, axis=1, keepdims=True)
 X_fluc = X - X_mean
@@ -125,9 +125,9 @@ dt = 1.0
 num_plot_modes = 6
 dmd_rank = num_dominant_modes if 'num_dominant_modes' in globals() else min(20, VT.shape[0])
 dpi = 150
-n_pixels, num_snapshots = X_fluc.shape # n_pixels is n_points
+n_pixels, num_snapshots = X_fluc.shape 
 
-# --- POD PLOTS ---
+# POD PLOTS
 print("Generating POD plots...")
 
 # 1) Singular values (linear scale)
@@ -153,7 +153,6 @@ plt.savefig(os.path.join(output_folder, 'singular_values_log.png'), dpi=dpi)
 plt.close()
 
 # 3) Modal energy and cumulative energy
-# (These plots are fine, no changes needed)
 energy = S**2 / np.sum(S**2)
 cum_energy = np.cumsum(energy)
 
@@ -183,14 +182,13 @@ plt.close()
 for k in range(min(num_plot_modes, U.shape[1])):
     print(f"Plotting POD Mode {k+1}")
     mode_vec = U[:, k]
-    # --- KEY CHANGE: Use interpolation function ---
+    
     arr = mode_to_2d(mode_vec)
     
     plt.figure(figsize=(8, 5))
-    # --- KEY CHANGE: Plot using grid_x, grid_y ---
     plt.contourf(grid_x, grid_y, arr, levels=50, cmap='jet')
-    plt.xlabel('X Coordinate', fontsize=10) # <-- Fixed label
-    plt.ylabel('Y Coordinate', fontsize=10) # <-- Fixed label
+    plt.xlabel('X Coordinate', fontsize=10)
+    plt.ylabel('Y Coordinate', fontsize=10)
     plt.title(f'POD Spatial Mode {k+1}', fontsize=12)
     plt.colorbar(label='Mode Amplitude')
     plt.axis('equal')
@@ -199,8 +197,8 @@ for k in range(min(num_plot_modes, U.shape[1])):
     plt.close()
 
 # 5) POD Temporal Coefficients
-# (This plot is fine, no changes needed)
-modal_time = (np.diag(S) @ VT)  # More stable way to write S*VT
+
+modal_time = (np.diag(S) @ VT)
 for k in range(min(num_plot_modes, modal_time.shape[0])):
     plt.figure()
     plt.plot(np.arange(num_snapshots) * dt, np.real(modal_time[k, :]), color='b')
@@ -224,7 +222,6 @@ X_orig = X + X_mean # Get back original (non-fluctuating) data
 
 snap_idx = num_snapshots // 2  # pick mid snapshot
 
-# --- KEY CHANGE: Must interpolate vectors for plotting ---
 orig_snap_vec = X_orig[:, snap_idx]
 recon_snap_vec = X_recon[:, snap_idx]
 
@@ -234,28 +231,25 @@ diff_snap_2d = orig_snap_2d - recon_snap_2d
 
 rmse_time = np.sqrt(np.mean((X_orig - X_recon)**2, axis=0))
 
-plt.figure(figsize=(15, 5)) # Wider figure
+plt.figure(figsize=(15, 5))
 plt.subplot(1, 3, 1)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, orig_snap_2d, levels=50, cmap='jet')
 plt.title('Original Snapshot', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate')
 plt.colorbar(label=VAR_NAME)
 plt.axis('equal')
 
 plt.subplot(1, 3, 2)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, recon_snap_2d, levels=50, cmap='jet')
 plt.title(f'Reconstructed (r={r_recon})', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate')
 plt.colorbar(label=VAR_NAME)
 plt.axis('equal')
 
 plt.subplot(1, 3, 3)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, diff_snap_2d, levels=50, cmap='seismic')
 plt.title('Difference (Original - Reconstructed)', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate')
 plt.colorbar(label='Error Magnitude')
 plt.axis('equal')
 
@@ -264,7 +258,6 @@ plt.tight_layout(rect=[0, 0, 1, 0.93])
 plt.savefig(os.path.join(output_folder, f'reconstruction_snapshot_{snap_idx:03d}.png'), dpi=dpi)
 plt.close()
 
-# (RMSE plot is fine, no changes needed)
 plt.figure()
 plt.plot(np.arange(num_snapshots) * dt, rmse_time, color='r')
 plt.xlabel('Time (t)', fontsize=11)
@@ -275,7 +268,7 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_folder, 'reconstruction_rmse_time.png'), dpi=dpi)
 plt.close()
 
-# 7) Cross-Correlation (This plot is fine, no changes needed)
+# 7) Cross-Correlation
 if modal_time.shape[0] >= 2:
     a1, a2 = np.real(modal_time[0, :]), np.real(modal_time[1, :])
     corr = np.correlate(a1 - np.mean(a1), a2 - np.mean(a2), mode='full')
@@ -290,12 +283,11 @@ if modal_time.shape[0] >= 2:
     plt.savefig(os.path.join(output_folder, 'crosscor_mode1_mode2.png'), dpi=dpi)
     plt.close()
 
-# =============== DMD ANALYSIS ===============
-print("Starting DMD Analysis...")
+# DMD ANALYSIS
+print("Starting DMD Analysis")
 
-# Your DMD function is correct and works on the X matrix
 def compute_dmd(X, r=None, dt=1.0):
-    """Exact DMD computation"""
+    #Exact DMD computation
     X1 = X[:, :-1]
     X2 = X[:, 1:]
     Ux, Sx, Vtx = np.linalg.svd(X1, full_matrices=False)
@@ -335,8 +327,8 @@ dmd_res = compute_dmd(X_fluc, r=dmd_rank, dt=dt)
 print("DMD computation complete.")
 
 # 8) DMD Eigenvalues on Complex Plane
-# (This plot is fine, no changes needed)
-print("Plotting DMD results...")
+
+print("Plotting DMD results")
 eigvals = dmd_res['eigvals']
 plt.figure()
 plt.scatter(np.real(eigvals), np.imag(eigvals), c='r', marker='o', label='DMD eigenvalues')
@@ -356,15 +348,13 @@ plt.close()
 Phi = dmd_res['modes']
 for k in range(min(num_plot_modes, Phi.shape[1])):
     print(f"Plotting DMD Mode {k+1}")
-    mode_vec = np.real(Phi[:, k])
-    # --- KEY CHANGE: Use interpolation function ---
+    mode_vec = np.real(Phi[:, k])-
     arr = mode_to_2d(mode_vec)
     
     plt.figure(figsize=(8, 5))
-    # --- KEY CHANGE: Plot using grid_x, grid_y ---
     plt.contourf(grid_x, grid_y, arr, levels=50, cmap='jet')
-    plt.xlabel('X Coordinate', fontsize=10) # <-- Fixed label
-    plt.ylabel('Y Coordinate', fontsize=10) # <-- Fixed label
+    plt.xlabel('X Coordinate', fontsize=10) 
+    plt.ylabel('Y Coordinate', fontsize=10) 
     plt.title(f'DMD Spatial Mode {k+1} (Real Part)', fontsize=12)
     plt.colorbar(label='Mode Amplitude')
     plt.axis('equal')
@@ -373,7 +363,7 @@ for k in range(min(num_plot_modes, Phi.shape[1])):
     plt.close()
 
 # 10) DMD Temporal Amplitudes
-# (This plot is fine, no changes needed)
+
 time = dmd_res['tvec']
 for k in range(min(num_plot_modes, dmd_res['time_evolution'].shape[0])):
     plt.figure()
@@ -387,10 +377,10 @@ for k in range(min(num_plot_modes, dmd_res['time_evolution'].shape[0])):
     plt.close()
 
 # 11) DMD Reconstruction vs Original (mid snapshot)
-print("Plotting DMD Reconstruction...")
+print("Plotting DMD Reconstruction")
 X_dmd_full = np.real(dmd_res['reconstruction'] + X_mean)
 
-# --- KEY CHANGE: Must interpolate vectors for plotting ---
+# Interpollating vectors for plotting
 orig_snap_vec = X_orig[:, snap_idx]
 dmd_snap_vec = X_dmd_full[:, snap_idx]
 
@@ -398,28 +388,25 @@ orig_snap_2d = mode_to_2d(orig_snap_vec)
 dmd_snap_2d = mode_to_2d(dmd_snap_vec)
 diff_dmd_snap_2d = orig_snap_2d - dmd_snap_2d
 
-plt.figure(figsize=(15, 5)) # Wider figure
+plt.figure(figsize=(15, 5))
 plt.subplot(1, 3, 1)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, orig_snap_2d, levels=50, cmap='jet')
 plt.title('Original Snapshot', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') 
 plt.colorbar(label=VAR_NAME)
 plt.axis('equal')
 
 plt.subplot(1, 3, 2)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, dmd_snap_2d, levels=50, cmap='jet')
 plt.title('DMD Reconstructed Snapshot', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate')
 plt.colorbar(label=VAR_NAME)
 plt.axis('equal')
 
 plt.subplot(1, 3, 3)
-# --- KEY CHANGE: Plot using grid_x, grid_y ---
 plt.contourf(grid_x, grid_y, diff_dmd_snap_2d, levels=50, cmap='seismic')
 plt.title('Difference (Original - DMD)', fontsize=11)
-plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate') # <-- Fixed label
+plt.xlabel('X Coordinate'); plt.ylabel('Y Coordinate')
 plt.colorbar(label='Error Magnitude')
 plt.axis('equal')
 
@@ -429,7 +416,7 @@ plt.savefig(os.path.join(output_folder, f'DMD_reconstruction_snapshot_{snap_idx:
 plt.close()
 
 # 12) Compare POD vs DMD Reconstruction Error
-# (This plot is fine, no changes needed)
+
 rmse_dmd = np.sqrt(np.mean((X_orig - X_dmd_full)**2, axis=0))
 plt.figure()
 plt.plot(np.arange(num_snapshots) * dt, rmse_time, label='POD RMSE', color='b')
@@ -443,4 +430,4 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_folder, 'POD_vs_DMD_RMSE.png'), dpi=dpi)
 plt.close()
 
-print("✅ All labeled plots saved in:", output_folder)
+print("All plots saved in:", output_folder)
