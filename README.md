@@ -5,13 +5,13 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ##  Project Overview
-This project develops a **Reduced Order Model (ROM)** to accelerate high-fidelity Computational Fluid Dynamics (CFD) simulations. By applying machine learning techniques—specifically **Proper Orthogonal Decomposition (POD)** and **Dynamic Mode Decomposition (DMD)**. I extracted the dominant flow structures from a massive dataset (1.8 million points per snapshot) generated on a High-Performance Computing (HPC) cluster.
+This project develops a **Reduced Order Model (ROM)** to accelerate high-fidelity Computational Fluid Dynamics (CFD) simulations. By applying machine learning techniques namely **Proper Orthogonal Decomposition (POD)** and **Dynamic Mode Decomposition (DMD)**. I extracted the dominant flow structures from a massive dataset (1.8 million points per snapshot) generated on a High-Performance Computing (HPC) cluster.
 
-The resulting model captures **95% of the flow energy** while offering a **1000x speedup** in prediction time, demonstrating the potential for real-time Digital Twin applications in aerospace and automotive industries.
+The resulting model captures **95% of the flow energy** while offering a **massive speedup** in prediction time, demonstrating the potential for real-time Digital Twin applications in aerospace and automotive industries.
 
 ##  Key Features
 * **HPC-Scale Processing:** Automated pipeline to process unstructured text data (100GB+) on remote supercomputing clusters using Linux/Bash.
-* **Dimensionality Reduction:** Compressed 1.8M spatial degrees of freedom into <20 dominant modes using SVD-based algorithms.
+* **Dimensionality Reduction:** Compressed 1.8M spatial degrees of freedom into <20 dominant modes using POD and DMD.
 * **Unstructured-to-Structured Interpolation:** Implemented cubic interpolation (`scipy.interpolate.griddata`) to visualize and analyze unstructured mesh data.
 * **Physics Extraction:** Isolated coherent structures (vortex shedding) and stability eigenvalues using exact DMD.
 
