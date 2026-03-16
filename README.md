@@ -9,6 +9,17 @@ This project develops a **Reduced Order Model (ROM)** to accelerate high-fidelit
 
 The resulting model captures **95% of the flow energy** while offering a **massive speedup** in prediction time, demonstrating the potential for real-time Digital Twin applications in aerospace and automotive industries.
 
+## About the dataset used: 
+The dataset was taken from the following article: 
+Lagrangian and Eulerian dataset of the wake downstream of a smooth cylinder at a Reynolds number equal to 3900 
+Ali Rahimi Khojasteh, Sylvain Laizet, Dominique Heitz, Yin Yanga
+
+I have performed POD and DMD on the sub-domain 1
+
+Link to the article: https://www.sciencedirect.com/science/article/pii/S2352340921010003
+
+
+
 ##  Key Features
 * **HPC-Scale Processing:** Automated pipeline to process unstructured text data (100GB+) on remote supercomputing clusters using Linux/Bash.
 * **Dimensionality Reduction:** Compressed 1.8M spatial degrees of freedom into <20 dominant modes using POD and DMD.
